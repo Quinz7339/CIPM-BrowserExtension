@@ -73,7 +73,7 @@
 #txt_APIKey {
   width: 80%;
   padding: 10px 8px;
-  margin: 5px 0;
+  margin: 3px 0;
   box-sizing: border-box;
   display: inline-block;
   border: 2px solid #ccc;
@@ -90,7 +90,7 @@
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  margin: 4px 2px;
+  margin: 3px 2px;
   cursor: pointer;
   border-radius: 4px;
 }

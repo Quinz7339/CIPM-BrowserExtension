@@ -1,10 +1,13 @@
 console.log("Start");
 
-//declaration of variables and fixed strings
+//declaring the links to the RSS news feeds
 const feeds = [
     { title: 'Dark Reading', url: 'https://www.darkreading.com/rss.xml' },
     { title: 'The Hacker News', url: 'https://feeds.feedburner.com/TheHackersNews' }
   ];
+
+//declaring the API key for the VirusTotal malicious link detection as well as the currently visited URL
+
 
 var API_KEY = "Your API Key";
 chrome.storage.sync.get(['API_KEY'], function(result) {
@@ -102,17 +105,22 @@ btn_Settings.addEventListener('click', function() {
   document.getElementById('container').innerHTML = '';
   console.log(API_KEY);
 
-  const header = document.createElement('h2');
+  //creating and initializing the settings page
+  //creating header for the settings page
+  const header = document.createElement('h2');  
   header.innerText = "Settings";
 
-  const title = document.createElement('h3');
+  //creating subheader for the API key input
+  const title = document.createElement('h3'); 
   title.innerText = "Insert the API key for the VirusTotal malicious link detection.";
-  
-  const txt_APIKey = document.createElement('input');
+
+  //creating the input field for the API key
+  const txt_APIKey = document.createElement('input'); 
   txt_APIKey.type = "text";
   txt_APIKey.id = "txt_APIKey";
   txt_APIKey.placeholder = "Insert API Key";
-
+  
+  //Check if the API key is already stored in the chrome storage
   chrome.storage.sync.get(['API_KEY'], function(result) {
     if (result.API_KEY != null || result.API_KEY != undefined) {
       txt_APIKey.value = result.API_KEY;
@@ -145,10 +153,14 @@ btn_Settings.addEventListener('click', function() {
   document.getElementById('container').appendChild(title);
   document.getElementById('container').appendChild(txt_APIKey);
   document.getElementById('container').appendChild(btn_SaveAPIKey);
- 
 });
 
 function setAPIKey() {
+  const response = document.createElement('p');
+  response.id = "response";
+  response.style.color = "green";
+  response.innerText = "API Key saved successfully!";
+  document.getElementById('container').appendChild(response);
   chrome.storage.sync.set({API_KEY: API_KEY}, function() {
     console.log('Entered value is: ' + API_KEY);
   });
