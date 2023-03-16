@@ -18,14 +18,26 @@
   #btn_News {
     background-color: #4CAF50;
   }
+  #btn_News:hover {
+    background-color: #3e8e41;
+  }
   
-  #btn_Tips {
+  #btn_Connect {
     background-color: #008CBA;
   }
   
   #btn_Settings {
     background-color: #f44336;
   }
+  #btn_Settings:hover {
+    background-color: #da190b;
+  } 
+
+
+#container {
+  margin-bottom: 15px;
+}
+  
 #news-feed {
   max-height: 500px;
   padding: 10px;
@@ -57,6 +69,33 @@
   margin-top: 0;
   cursor: pointer;
 }
+
+#txt_APIKey {
+  width: 80%;
+  padding: 10px 8px;
+  margin: 5px 0;
+  box-sizing: border-box;
+  display: inline-block;
+  border: 2px solid #ccc;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  outline: none;
+}
+
+#btn_SaveAPIKey {
+  border: none;
+  color: white;
+  padding: 12px 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+
 #author
 {    
     position: fixed;

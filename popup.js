@@ -7,20 +7,30 @@ const feeds = [
   ];
 
 var API_KEY = "Your API Key";
+chrome.storage.sync.get(['API_KEY'], function(result) {
+  API_KEY = result.API_KEY;
+  });
 
-
-
-// Gets the reference to the buttons from the HTML document
+// Gets the reference to the buttons and fields from the HTML document
 const btn_News = document.getElementById('btn_News');
 const btn_Tips = document.getElementById('btn_Tips');
+const btn_Settings = document.getElementById('btn_Settings');
+
 
 btn_News.addEventListener('click', function() {
+    //Clearing the content of the container
+    document.getElementById('container').innerHTML = '';
 
-    //Clearing the content of the divs
-    document.getElementById('dark-reading-feed-container').innerHTML = '';
-    document.getElementById('the-hacker-news-feed-container').innerHTML = '';
+    //Creating the divs for the feeds
+    const darkContainer = document.createElement('div');
+    darkContainer.id = 'dark-reading-feed-container';
+    document.getElementById('container').appendChild(darkContainer);
 
+    const hackerContainer = document.createElement('div');
+    hackerContainer.id = 'the-hacker-news-feed-container';
+    document.getElementById('container').appendChild(hackerContainer);
 
+    // Loop through each feed and fetch the corresponding RSS feed
     for (let i = 0; i < feeds.length; i++) {
         const feed = feeds[i];
         
@@ -47,7 +57,7 @@ btn_News.addEventListener('click', function() {
               const title = item.querySelector('title').textContent;
               const link = item.querySelector('link').textContent;
 
-              //can consider using if else
+              //Note to developer: can consider adding a check to see if the thumbnail exists or not
               const thumbnail=item.querySelector('enclosure') ? item.querySelector('enclosure').getAttribute('url') : null;
               const description = item.querySelector('description').textContent;
       
@@ -88,7 +98,65 @@ btn_News.addEventListener('click', function() {
       }
 });
 
-btn_Tips.addEventListener('click', function() {
+btn_Settings.addEventListener('click', function() {
+  document.getElementById('container').innerHTML = '';
+  console.log(API_KEY);
 
+  const header = document.createElement('h2');
+  header.innerText = "Settings";
 
+  const title = document.createElement('h3');
+  title.innerText = "Insert the API key for the VirusTotal malicious link detection.";
+  
+  const txt_APIKey = document.createElement('input');
+  txt_APIKey.type = "text";
+  txt_APIKey.id = "txt_APIKey";
+  txt_APIKey.placeholder = "Insert API Key";
+
+  chrome.storage.sync.get(['API_KEY'], function(result) {
+    if (result.API_KEY != null || result.API_KEY != undefined) {
+      txt_APIKey.value = result.API_KEY;
+    }});
+
+  const btn_SaveAPIKey = document.createElement('button');
+  btn_SaveAPIKey.id = "btn_SaveAPIKey";
+  btn_SaveAPIKey.innerText = "Save";
+  btn_SaveAPIKey.disabled = true;
+  btn_SaveAPIKey.title = "API Key must be 64 characters long";
+  btn_SaveAPIKey.style.backgroundColor = "grey";
+
+  txt_APIKey.addEventListener('input', function(){
+    if (txt_APIKey.value.length == 64) {
+      btn_SaveAPIKey.style.backgroundColor = "#4CAF50";
+      btn_SaveAPIKey.disabled = false;    
+    }
+    else {
+      btn_SaveAPIKey.style.backgroundColor = "grey";
+      btn_SaveAPIKey.disabled = true;
+    }
+  });
+
+  btn_SaveAPIKey.addEventListener('click', function(){
+    API_KEY = document.getElementById('txt_APIKey').value;
+    setAPIKey();
+  });
+
+  document.getElementById('container').appendChild(header);
+  document.getElementById('container').appendChild(title);
+  document.getElementById('container').appendChild(txt_APIKey);
+  document.getElementById('container').appendChild(btn_SaveAPIKey);
+ 
 });
+
+function setAPIKey() {
+  chrome.storage.sync.set({API_KEY: API_KEY}, function() {
+    console.log('Entered value is: ' + API_KEY);
+  });
+}
+
+function doSomething() {
+  console.log("Hello");
+}
+
+
+
