@@ -7,15 +7,12 @@
     "host_permissions": ["https://*/*","http://*/*"],
     "permissions": ["storage","tabs","webRequest","alarms","activeTab","https://*/*","http://*/*"],
 
+
     "icons": {
         "16": "Icons/Logo16.png",
         "32": "Icons/Logo32.png",
         "64": "Icons/Logo64.png",
         "128": "Icons/Logo128.png"
-    },
-
-    "background": {
-        "service_worker": "background-worker.js"
     },
 
     "action": {

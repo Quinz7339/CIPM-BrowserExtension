@@ -21,3 +21,8 @@ Browser Extension for the CIPM Password Manager
     - https://safeweb.norton.com/
     - http://checkshorturl.com/ (to expand shorten link)
 
+buffer code for manifest
+    "background": {
+        "service_worker": "background-worker.js",
+        "persistent": true
+    },

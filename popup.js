@@ -7,18 +7,26 @@ const feeds = [
   ];
 
 //declaring the API key for the VirusTotal malicious link detection as well as the currently visited URL
-
-
-var API_KEY = "Your API Key";
+var API_KEY = "";
 chrome.storage.sync.get(['API_KEY'], function(result) {
   API_KEY = result.API_KEY;
   });
 
 // Gets the reference to the buttons and fields from the HTML document
 const btn_News = document.getElementById('btn_News');
-const btn_Tips = document.getElementById('btn_Tips');
+const btn_Connect = document.getElementById('btn_Connect');
 const btn_Settings = document.getElementById('btn_Settings');
 
+function setAPIKey() {
+  const response = document.createElement('p');
+  response.id = "response";
+  response.style.color = "green";
+  response.innerText = "API Key saved successfully!";
+  document.getElementById('container').appendChild(response);
+  chrome.storage.sync.set({API_KEY: API_KEY}, function() {
+    console.log('Entered value is: ' + API_KEY);
+  });
+}
 
 btn_News.addEventListener('click', function() {
     //Clearing the content of the container
@@ -155,20 +163,61 @@ btn_Settings.addEventListener('click', function() {
   document.getElementById('container').appendChild(btn_SaveAPIKey);
 });
 
-function setAPIKey() {
-  const response = document.createElement('p');
-  response.id = "response";
-  response.style.color = "green";
-  response.innerText = "API Key saved successfully!";
-  document.getElementById('container').appendChild(response);
-  chrome.storage.sync.set({API_KEY: API_KEY}, function() {
-    console.log('Entered value is: ' + API_KEY);
+async function getVirusTotalResponse(user_url) {
+  //url = details.url;
+
+  const API_Url = 'https://www.virustotal.com/api/v3/urls';
+  //initializing the POST request
+  const options = {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-apikey': API_KEY,
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({url : user_url})
+    };
+  
+  try{
+    response = await fetch(API_Url, options)
+    if (response.ok) {
+      console.log("success");
+      data = await response.json();
+      console.log(data);
+    }
+    else if (response.status == 403 || response.status == 401) {
+      data = "sad"
+      alert("The API request has failed. The supplied API key might be invalid or the request quota might have been exceeded. Response: "+data)
+    }
+  }
+  catch (error) {
+    alert("An unexpected error has occurred. Please try again later. Error: "+error);
+  }
+};
+
+
+
+btn_Connect.addEventListener('click', function() {
+  document.getElementById('container').innerHTML = '';
+  //tester code for background.js
+  chrome.storage.sync.get(['API_KEY'], function(result) {
+    API_KEY = result.API_KEY;
+    });
+  
+  console.log(API_KEY);
+  //from chatgpt
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    url = tabs[0].url;
+    console.log(url);
+  getVirusTotalResponse(url);
   });
-}
 
-function doSomething() {
-  console.log("Hello");
-}
 
+  // below is code for background
+  //chrome.runtime.onInstalled.addListener(() => {
+  //  chrome.webNavigation.onCompleted.addListener(getVirusTotalResponse, {url: [{schemes: ['http', 'https']}]});
+  //});
+
+});
 
 
