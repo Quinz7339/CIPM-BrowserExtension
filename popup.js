@@ -133,7 +133,8 @@ btn_Settings.addEventListener('click', function() {
     if (result.API_KEY != null || result.API_KEY != undefined) {
       txt_APIKey.value = result.API_KEY;
     }});
-
+  
+  //creating the save button for the API key
   const btn_SaveAPIKey = document.createElement('button');
   btn_SaveAPIKey.id = "btn_SaveAPIKey";
   btn_SaveAPIKey.innerText = "Save";
@@ -141,6 +142,7 @@ btn_Settings.addEventListener('click', function() {
   btn_SaveAPIKey.title = "API Key must be 64 characters long";
   btn_SaveAPIKey.style.backgroundColor = "grey";
 
+  //eventListener for the input field to check if the API key is 64 characters long and enable the save button accordingly
   txt_APIKey.addEventListener('input', function(){
     if (txt_APIKey.value.length == 64) {
       btn_SaveAPIKey.style.backgroundColor = "#4CAF50";
@@ -152,6 +154,7 @@ btn_Settings.addEventListener('click', function() {
     }
   });
 
+  //saving the API key to the chrome storage upon clicking the save button
   btn_SaveAPIKey.addEventListener('click', function(){
     API_KEY = document.getElementById('txt_APIKey').value;
     setAPIKey();
@@ -163,61 +166,24 @@ btn_Settings.addEventListener('click', function() {
   document.getElementById('container').appendChild(btn_SaveAPIKey);
 });
 
-async function getVirusTotalResponse(user_url) {
-  //url = details.url;
 
-  const API_Url = 'https://www.virustotal.com/api/v3/urls';
-  //initializing the POST request
-  const options = {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'x-apikey': API_KEY,
-        'content-type': 'application/x-www-form-urlencoded'
-      },
-      body: new URLSearchParams({url : user_url})
-    };
-  
-  try{
-    response = await fetch(API_Url, options)
-    if (response.ok) {
-      console.log("success");
-      data = await response.json();
-      console.log(data);
-    }
-    else if (response.status == 403 || response.status == 401) {
-      data = "sad"
-      alert("The API request has failed. The supplied API key might be invalid or the request quota might have been exceeded. Response: "+data)
-    }
-  }
-  catch (error) {
-    alert("An unexpected error has occurred. Please try again later. Error: "+error);
-  }
-};
+
+//tester code for the API
+//tester code for the API
+//tester code for the API
 
 
 
+
+// tester code for background.js
 btn_Connect.addEventListener('click', function() {
   document.getElementById('container').innerHTML = '';
-  //tester code for background.js
-  chrome.storage.sync.get(['API_KEY'], function(result) {
-    API_KEY = result.API_KEY;
-    });
-  
-  console.log(API_KEY);
-  //from chatgpt
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    url = tabs[0].url;
-    console.log(url);
-  getVirusTotalResponse(url);
-  });
 
 
   // below is code for background
   //chrome.runtime.onInstalled.addListener(() => {
   //  chrome.webNavigation.onCompleted.addListener(getVirusTotalResponse, {url: [{schemes: ['http', 'https']}]});
   //});
-
 });
 
 
