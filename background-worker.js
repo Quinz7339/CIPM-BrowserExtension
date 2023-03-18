@@ -1,7 +1,6 @@
 console.log("Hi from background-worker.js");
 
-//endpoint for the API
-const API_Url = "https://www.virustotal.com/api/v3/urls";
+const API_Url = "https://www.virustotal.com/api/v3/urls"; //endpoint for the API
 
 //Databases with known malicious URLs to test against the extension
 // https://openphish.com/
@@ -21,16 +20,9 @@ var flag = false;
 //   console.log('Current list: ' + trustedURLs);
 // });
 
-
-//pre-loading existing trusted URLs from the chrome storage
-chrome.storage.sync.get(['trustedURLs'], function(result) {
-
-  // Modify the var array by appending the existing URL from the chrome storage
-  url = result.trustedURLs || [];
-  trustedURLs.push(url);
-});
-
-console.log("Trusted URLs: " + trustedURLs);
+/*-------------------------------------------------------
+|                  supporting functions                 | 
+--------------------------------------------------------*/
 
 //function to check if the URL exists in the trustedURL database (chrome storage)
 function checkCurrentDatabase(url)
@@ -209,6 +201,15 @@ async function main(){
   });
 }
 
+//pre-loading existing trusted URLs from the chrome storage
+chrome.storage.sync.get(['trustedURLs'], function(result) {
+
+  // Modify the var array by appending the existing URL from the chrome storage
+  url = result.trustedURLs || [];
+  trustedURLs.push(url);
+});
+
+console.log("Trusted URLs: " + trustedURLs);
 //runs the main function
 main();
 
