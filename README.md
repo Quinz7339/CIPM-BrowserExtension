@@ -22,16 +22,11 @@ Browser Extension for the CIPM Password Manager
 - integration with desktop application for autofill
 
 
-- extension: rss news site
 - extension: password integration (extra)
 - extension: security tips (sendiri generate tips) (scraped)
 
-
-- extension: malicious link detection (either thru webpage signature or virustotal)
-    - this requires paid API services
-    - https://www.urlvoid.com/
-    - https://safeweb.norton.com/
-    - http://checkshorturl.com/ (to expand shorten link)
+Obstacles
+- alerts() are deprecated for service-workers in manifest v3
 
 buffer code for manifest
     "background": {

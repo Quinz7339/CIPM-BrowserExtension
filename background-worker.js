@@ -1,45 +1,24 @@
 console.log("Hi from background-worker.js");
-var isAPIkeyFunctional = false;
+
+//endpoint for the API
 const API_Url = "https://www.virustotal.com/api/v3/urls";
+
+//hardcoded list of trusted websites (to be done dynamically)
+const trustedURls = [
+  "www.google.com", "outlook.office.com", "www.facebook.com", 
+  "www.youtube.com", "www.amazon.com", "www.netflix.com", 
+  "www.instagram.com", "www.twitter.com", "www.linkedin.com", 
+  "www.reddit.com", "www.tumblr.com", "www.pinterest.com"];
+
+//declaration of variables
+var isAPIkeyFunctional = false;
 var API_KEY = "";
-
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.webNavigation.onCompleted.addListener(run, {url: [{schemes: ['http', 'https']}]});
-});
+var checkedURLInstance = false;
+var currentUrl;
 
 
-async function run (details)
-{
-    console.log(details.url);
-    chrome.notifications.create({
-        type: 'basic',
-        title: 'Malicious website detected',
-        message: `The website ${details.url} has been detected as malicious.`,
-        iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-    });
-    //alert("Hi from background-worker.js"); deprecated in manifest v3
-}
-
-
-//retrieves the saved API key from the chrome storage
-chrome.storage.sync.get(['API_KEY'], function(result) {
-    API_KEY = result.API_KEY;
-    console.log(API_KEY);
-
-    if (API_KEY != null || API_KEY != undefined) {
-        isAPIkeyFunctional = true;
-        console.log("API key is functional");
-    }
-    else {
-        isAPIkeyFunctional = false;
-        console.log("API key is not functional");
-    }
-});
-
-
-async function getVirusTotalID(user_url){
-    const API_Url = 'https://www.virustotal.com/api/v3/urls';
-  
+//fucntion to return the URL identifier of a given URL from the VirusTotal API
+async function getVirusTotalID(user_url) {
     //initializing the POST request
     const options = {
         method: 'POST',
@@ -51,54 +30,136 @@ async function getVirusTotalID(user_url){
         body: new URLSearchParams({url: user_url})
       };
     console.log(options);
-    
     try{
-  
-      response = await fetch(API_Url, options)
-      console.log(response);
-      
+      response = await fetch(API_Url, options);
       if (response.ok) {
         console.log("success");
-        data = await response.json(); //this works now
-        dataId = data.id;
-        console.log("Data:" + data);
-        console.log("ID:" + dataId);
+        response = await response.json() //jsonify the response
+        return response.data.id;        //returns the data.id of the response
       }
-      else if (response.status == 403 || response.status == 401) {
-        alert("The API request has failed. The supplied API key might be invalid or the request quota might have been exceeded. Response: "+data)
+
+      //Error 401 - errors related to VirusTotal account and authentication
+      else if (response.status == 401) {
+        chrome.notifications.create({
+          type: 'basic',
+          title: 'API request failed.',
+          message: 'Error 401: The supplied API key is invalid. Please enter a valid API key in the Settings page or ensure your VirusTotal Account is active.',
+          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+        });
+        return response;
+      }
+
+      //Error 429 - API request quota related error
+      else if (response.status == 429) {
+        chrome.notifications.create({
+          type: 'basic',
+          title: 'API request failed. Quota exceeded.',
+          message: 'Error 429: The API request quota has been exceeded (4 per minute for normal accounts) or too many requests are being made. Please try again later.',
+          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+        });
+        return response;
+
+      //Miscellaneous errors from VirusTotal API
       }else {
-        alert("The API request has failed. Response: "+data)
+        chrome.notifications.create({
+          type: 'basic',
+          title: 'API request failed.',
+          message: 'An unexpected error has occurred. Please try again later.',
+          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+        });
+        return response;
       }
     }
+    //Error from unexpected exceptions.
     catch (error) {
-      alert("An unexpected error has occurred. Please try again later. Error: "+error);
+      chrome.notifications.create({
+        type: 'basic',
+        title: 'Exception error.',
+        message: 'An unexpected error has occurred. Please try again later. Error: [' + error + ']',
+        iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+      });
     }
-  
-  };
-  
-async function getVirusTotalReport(url) {
-    id = await getVirusTotalID(url);
-    console.log(id);
 };
 
+//function to get the report from the VirusTotal API
+async function getVirusTotalReport(url){
+  reportId = await getVirusTotalID(url);
+  const options = {method: 'GET', headers: {accept: 'application/json'}};
+  console.log("Get ID:" + getId);
+}
 
 
-//from chatgpt
+//function to determine to execute the malicious link detection functions
+async function run (url)
+{
+  console.log("Current url:"+ url);
+  //retrieve the API key from the chrome storage
+  chrome.storage.sync.get(['API_KEY'], function(result) {
+    API_KEY = result.API_KEY;
+    console.log("API key:" + API_KEY);
+  if (API_KEY != null || API_KEY != undefined) {
+    isAPIkeyFunctional = true;
+    // chrome.notifications.create({
+    //   type: 'basic',
+    //   title: 'API key is retrieved.',
+    //   message: `The API key ${API_KEY} has been retrieved from the chrome storage.`,
+    //   iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+    // });
+  }
+  else {
+    isAPIkeyFunctional = false;
+    // chrome.notifications.create({
+    //   type: 'basic',
+    //   title: 'No API key is supplied.',
+    //   message: "Please supply an API key in the Settings page of the extension.",
+    //   iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+    // });
+  }
+  if (isAPIkeyFunctional) {
+    getVirusTotalReport(url);
+  }
+  });
+}
 
 
+/*-------------------------------------------------------
+|                      main function                    | 
+--------------------------------------------------------*/
+async function main(){
+  //sets the flag to be false when the tab is changed
+chrome.tabs.onActivated.addListener(() => {
+  checkedURLInstance = false;
+});
+
+//changes the flag to be false when the url is changed, and reassigns the currentUrl variable 
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (tab.active && changeInfo.url && (changeInfo.url.startsWith("http") || changeInfo.url.startsWith("https"))) {
+    if (changeInfo.url !== currentUrl) {
+      console.log(currentUrl);
+      currentUrl = changeInfo.url;
+      checkedURLInstance = false;
+    }
+  }
+});
+
+//checks if the content of the tab is loaded.
+chrome.webNavigation.onDOMContentLoaded.addListener(() => {
+  //this block only runs if the flag is false = the currentUrl is different to the previous one
+  if (!checkedURLInstance) {
+    //queries the current active tab and window, and retrieves the url
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    url = tabs[0].url;
+    if (url.startsWith("http") || url.startsWith("https") ) {
+      checkedURLInstance = true;
+      run(url);
+    }
+    });
+  checkedURLInstance = true;
+  }
+  });
+}
+
+//runs the main function
+main();
 
 
-//main process to run in the background
-//run()
-
-//from chatgpt
-// chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-//     url = tabs[0].url; //fetches the currently active tab's url
-//     console.log(url);
-//     if (url.indexOf("http") == 0 || url.indexOf("https") == 0) {
-//     getVirusTotalReport(url);
-//     }
-//     else{
-//     alert("The URL does not start with http or https.");
-//     }
-// });
