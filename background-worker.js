@@ -3,48 +3,50 @@ console.log("Hi from background-worker.js");
 //endpoint for the API
 const API_Url = "https://www.virustotal.com/api/v3/urls";
 
-//Databases with known malicious URLs
+//Databases with known malicious URLs to test against the extension
 // https://openphish.com/
 // https://www.phishtank.com/
 
 
 //declaration of variables
-var isAPIkeyFunctional = false;
+var isAPIkeyFunctional = false; //flag to check if an API key was provided
 var API_KEY = "";
-var checkedURLInstance = false;
+var checkedURLInstance = false; //flag to check if the URL has been checked
 var currentUrl;
 var trustedURLs=[];
-var maliciousURLs=[];
 var flag = false;
 
-//pre-loading existing malicious URLs from the chrome storage
-// chrome.storage.sync.get(['maliciousURLs'], function(result) {
-//   // Modify array by appending new URL
-//   url = result.maliciousURLs || [];
-//   maliciousURLs.push(url);
+//placeholder to reset the trustedURLs database
+// chrome.storage.sync.set({trustedURLs: trustedURLs}, function() {
+//   console.log('Current list: ' + trustedURLs);
 // });
 
-// //pre-loading existing trusted URLs from the chrome storage
-// chrome.storage.sync.get(['trustedURLs'], function(result) {
-//   // Modify array by appending new URL
-//   url = result.trustedURLs || [];
-//   trustedURLs.push(url);
-// });
 
-// console.log("Trusted URLs: " + trustedURLs);
-// console.log("Malicious URLs: " + maliciousURLs);
+//pre-loading existing trusted URLs from the chrome storage
+chrome.storage.sync.get(['trustedURLs'], function(result) {
 
+  // Modify the var array by appending the existing URL from the chrome storage
+  url = result.trustedURLs || [];
+  trustedURLs.push(url);
+});
 
-// function checkCurrentDatabase(url)
-// {
-//   if (url in maliciousURLs){
-//     chrome.showNotification("Malicious URL detected!");
-//   }
-// }
+console.log("Trusted URLs: " + trustedURLs);
+
+//function to check if the URL exists in the trustedURL database (chrome storage)
+function checkCurrentDatabase(url)
+{
+  if (url in trustedURLs){
+    return true;
+  }
+}
 
 //function to get the report from the VirusTotal API
 async function getVirusTotalReport(url){
-  flag = false;
+
+  //breaks the function if the URL is already in the trustedURL database
+  if (checkCurrentDatabase(url) == true){
+    return;
+  }
   var report;
   var stats;
   encoded_url = btoa(url).replace(/=+$/, '');
@@ -101,9 +103,13 @@ async function getVirusTotalReport(url){
       iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
     });
   }
+
+  //if the API request is successful, check the report for malicious/suspicious URLs
   if (flag == true){
     stats = report.attributes.last_analysis_stats
     console.log(stats);
+
+    //if the URL is malicious/suspicious, shows a desktop notifcation to the user and open the VirusTotal link in a new tab
     if ((stats.malicious > 0 || stats.suspicious > 0) && stats.harmless < 90) {
       chrome.notifications.create({
         type: 'basic',
@@ -111,27 +117,26 @@ async function getVirusTotalReport(url){
         message: 'The link you are trying to access is known to be malicious/suspicious. Please be careful. Link: ' + url + '',
         iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
       });
-      // maliciousURLs.push(url);
-      // chrome.storage.sync.set({maliciousURLs: maliciousURLs}, function() {
-      //   console.log('New malicious URL added to storage: ' + url);
-      // });
-      console.log(report.id)
-      //self.clients.openWindow("https://www.virustotal.com/gui/url/"+report.id);
+      //creates a new tab with the VirusTotal link
       chrome.tabs.create({url: "https://www.virustotal.com/gui/url/"+report.id}, function(tab) {
-      console.log("New tab created with ID: " + tab.id);
+        console.log("New tab created with ID: " + tab.id);
       });
     }
-  }
-  else{
-    // chrome.storage.sync.set({trustedURLs: trustedURLs}, function() {
-    //   console.log('New trusted URL added to storage: ' + url);
-    // });
+
+    //else, add the URL to the trusted URL database (chrome storage)
+    else{
+      trustedURLs.push(url);
+      chrome.storage.sync.set({trustedURLs: trustedURLs}, function() {
+        console.log('Current list: ' + trustedURLs);
+      });
+    }
+    flag = false;
   }
 }
 
 
-//function to determine to execute the malicious link detection functions
-async function run (url)
+//function to determine to execute the functions for malicious link detection
+async function checkAPI (url)
 {
   console.log("Current url:"+ url);
   //retrieve the API key from the chrome storage
@@ -187,7 +192,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(() => {
     url = tabs[0].url;
     if (url.startsWith("http") || url.startsWith("https") ) {
       checkedURLInstance = true;
-      run(url);
+      checkAPI(url);
     }
     });
   checkedURLInstance = true;
