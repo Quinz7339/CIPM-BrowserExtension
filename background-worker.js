@@ -47,9 +47,15 @@ async function getVirusTotalReport(url){
   if (checkCurrentDatabase(url) == true){
     return;
   }
+
+  //declaration of variables
   var report;
   var stats;
+
+  //encoding the URL to be used in the API request
   encoded_url = btoa(url).replace(/=+$/, '');
+
+  //initialising the API request headers/options
   const options = {
     method: 'GET',
     headers: 
@@ -143,6 +149,8 @@ async function checkAPI (url)
   chrome.storage.sync.get(['API_KEY'], function(result) {
     API_KEY = result.API_KEY;
     console.log("API key:" + API_KEY);
+
+  //sets the flag to be true if the API key was previously supplied
   if (API_KEY != null || API_KEY != undefined) {
     isAPIkeyFunctional = true;
   }
@@ -156,6 +164,7 @@ async function checkAPI (url)
     });
     return
   }
+  //if the API key is supplied, execute the function to get the report from the VirusTotal API
   if (isAPIkeyFunctional) {
     getVirusTotalReport(url);
   }
@@ -168,35 +177,35 @@ async function checkAPI (url)
 --------------------------------------------------------*/
 async function main(){
   //sets the flag to be false when the tab is changed
-chrome.tabs.onActivated.addListener(() => {
-  checkedURLInstance = false;
-});
+  chrome.tabs.onActivated.addListener(() => {
+    checkedURLInstance = false;
+  });
 
 //changes the flag to be false when the url is changed, and reassigns the currentUrl variable 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (tab.active && changeInfo.url && (changeInfo.url.startsWith("http") || changeInfo.url.startsWith("https"))) {
-    if (changeInfo.url !== currentUrl) {
-      try{console.log("Previous url: "+ currentUrl);}catch{}
-      currentUrl = changeInfo.url;
-      checkedURLInstance = false;
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (tab.active && changeInfo.url && (changeInfo.url.startsWith("http") || changeInfo.url.startsWith("https"))) {
+      if (changeInfo.url !== currentUrl) {
+        try{console.log("Previous url: "+ currentUrl);}catch{}
+        currentUrl = changeInfo.url;
+        checkedURLInstance = false;
+      }
     }
-  }
-});
+  });
 
 //checks if the content of the tab is loaded.
-chrome.webNavigation.onDOMContentLoaded.addListener(() => {
-  //this block only runs if the flag is false = the currentUrl is different to the previous one
-  if (!checkedURLInstance) {
-    //queries the current active tab and window, and retrieves the url
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    url = tabs[0].url;
-    if (url.startsWith("http") || url.startsWith("https") ) {
-      checkedURLInstance = true;
-      checkAPI(url);
+  chrome.webNavigation.onDOMContentLoaded.addListener(() => {
+    //this block only runs if the flag is false = the currentUrl is different to the previous one
+    if (!checkedURLInstance) {
+      //queries the current active tab and window, and retrieves the url
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      url = tabs[0].url;
+      if (url.startsWith("http") || url.startsWith("https") ) {
+        checkedURLInstance = true;
+        checkAPI(url);
+      }
+      });
+    checkedURLInstance = true;
     }
-    });
-  checkedURLInstance = true;
-  }
   });
 }
 
