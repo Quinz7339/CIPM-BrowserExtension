@@ -17,75 +17,73 @@ var checkedURLInstance = false;
 var currentUrl;
 
 
-//fucntion to return the URL identifier of a given URL from the VirusTotal API
-async function getVirusTotalID(user_url) {
-    //initializing the POST request
-    const options = {
-        method: 'POST',
-        headers: {
-          accept: 'application/json',
-          'x-apikey': API_KEY,
-          'content-type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({url: user_url})
-      };
-    console.log(options);
-    try{
-      response = await fetch(API_Url, options);
-      if (response.ok) {
-        console.log("success");
-        response = await response.json() //jsonify the response
-        return response.data.id;        //returns the data.id of the response
-      }
-
-      //Error 401 - errors related to VirusTotal account and authentication
-      else if (response.status == 401) {
-        chrome.notifications.create({
-          type: 'basic',
-          title: 'API request failed.',
-          message: 'Error 401: The supplied API key is invalid. Please enter a valid API key in the Settings page or ensure your VirusTotal Account is active.',
-          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-        });
-        return response;
-      }
-
-      //Error 429 - API request quota related error
-      else if (response.status == 429) {
-        chrome.notifications.create({
-          type: 'basic',
-          title: 'API request failed. Quota exceeded.',
-          message: 'Error 429: The API request quota has been exceeded (4 per minute for normal accounts) or too many requests are being made. Please try again later.',
-          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-        });
-        return response;
-
-      //Miscellaneous errors from VirusTotal API
-      }else {
-        chrome.notifications.create({
-          type: 'basic',
-          title: 'API request failed.',
-          message: 'An unexpected error has occurred. Please try again later.',
-          iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-        });
-        return response;
-      }
+//function to get the report from the VirusTotal API
+async function getVirusTotalReport(url){
+  var report;
+  // reportId = await getVirusTotalID(url);
+  encoded_url = btoa(url).replace(/=+$/, '');
+  const options = {
+    method: 'GET',
+    headers: 
+      {accept: 'application/json',
+      'x-apikey': API_KEY}
+    };
+  try{
+    response = await fetch(API_Url+"/"+encoded_url, options);
+    if (response.ok) {
+      console.log("success");
+      response = await response.json() //jsonify the response
+      report = response.data.attributes.last_analysis_stats;
+      console.log(report);
     }
-    //Error from unexpected exceptions.
-    catch (error) {
+    //Error 401 - errors related to VirusTotal account and authentication
+    else if (response.status == 401) {
       chrome.notifications.create({
         type: 'basic',
-        title: 'Exception error.',
-        message: 'An unexpected error has occurred. Please try again later. Error: [' + error + ']',
+        title: 'API request failed.',
+        message: 'Error 401: The supplied API key is invalid. Please enter a valid API key in the Settings page or ensure your VirusTotal Account is active.',
         iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
       });
     }
-};
 
-//function to get the report from the VirusTotal API
-async function getVirusTotalReport(url){
-  reportId = await getVirusTotalID(url);
-  const options = {method: 'GET', headers: {accept: 'application/json'}};
-  console.log("Get ID:" + getId);
+    //Error 429 - API request quota related error
+    else if (response.status == 429) {
+      chrome.notifications.create({
+        type: 'basic',
+        title: 'API request failed. Quota exceeded.',
+        message: 'Error 429: The API request quota has been exceeded (4 per minute for normal accounts) or too many requests are being made. Please try again later.',
+        iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+      });
+
+    //Miscellaneous errors from VirusTotal API
+    }else {
+      chrome.notifications.create({
+        type: 'basic',
+        title: 'API request failed.',
+        message: 'An unexpected error has occurred. Please try again later.',
+        iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+      });
+    }
+  }
+  //Error from unexpected exceptions.
+  catch(error) {
+    chrome.notifications.create({
+      type: 'basic',
+      title: 'Exception error.',
+      message: 'An unexpected error has occurred. Please try again later. Error: [' + error + ']',
+      iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+    });
+  }
+  console.log(report);
+  if ((report.malicious > 0 || report.suspicious > 0) && report.harmless < 90) {
+    chrome.notifications.create({
+      type: 'basic',
+      title: 'Malicious link detected.',
+      message: 'The link you are trying to access known to be malicious/suspicious. Please be careful.',
+      iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+    });
+    
+  }
 }
 
 
@@ -99,21 +97,16 @@ async function run (url)
     console.log("API key:" + API_KEY);
   if (API_KEY != null || API_KEY != undefined) {
     isAPIkeyFunctional = true;
-    // chrome.notifications.create({
-    //   type: 'basic',
-    //   title: 'API key is retrieved.',
-    //   message: `The API key ${API_KEY} has been retrieved from the chrome storage.`,
-    //   iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-    // });
   }
   else {
     isAPIkeyFunctional = false;
-    // chrome.notifications.create({
-    //   type: 'basic',
-    //   title: 'No API key is supplied.',
-    //   message: "Please supply an API key in the Settings page of the extension.",
-    //   iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-    // });
+    chrome.notifications.create({
+      type: 'basic',
+      title: 'No API key is supplied.',
+      message: "Please supply an API key in the Settings page of the extension.",
+      iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+    });
+    return
   }
   if (isAPIkeyFunctional) {
     getVirusTotalReport(url);
