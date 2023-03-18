@@ -3,24 +3,50 @@ console.log("Hi from background-worker.js");
 //endpoint for the API
 const API_Url = "https://www.virustotal.com/api/v3/urls";
 
-//hardcoded list of trusted websites (to be done dynamically)
-const trustedURls = [
-  "www.google.com", "outlook.office.com", "www.facebook.com", 
-  "www.youtube.com", "www.amazon.com", "www.netflix.com", 
-  "www.instagram.com", "www.twitter.com", "www.linkedin.com", 
-  "www.reddit.com", "www.tumblr.com", "www.pinterest.com"];
+//Databases with known malicious URLs
+// https://openphish.com/
+// https://www.phishtank.com/
+
 
 //declaration of variables
 var isAPIkeyFunctional = false;
 var API_KEY = "";
 var checkedURLInstance = false;
 var currentUrl;
+var trustedURLs=[];
+var maliciousURLs=[];
+var flag = false;
 
+//pre-loading existing malicious URLs from the chrome storage
+// chrome.storage.sync.get(['maliciousURLs'], function(result) {
+//   // Modify array by appending new URL
+//   url = result.maliciousURLs || [];
+//   maliciousURLs.push(url);
+// });
+
+// //pre-loading existing trusted URLs from the chrome storage
+// chrome.storage.sync.get(['trustedURLs'], function(result) {
+//   // Modify array by appending new URL
+//   url = result.trustedURLs || [];
+//   trustedURLs.push(url);
+// });
+
+// console.log("Trusted URLs: " + trustedURLs);
+// console.log("Malicious URLs: " + maliciousURLs);
+
+
+// function checkCurrentDatabase(url)
+// {
+//   if (url in maliciousURLs){
+//     chrome.showNotification("Malicious URL detected!");
+//   }
+// }
 
 //function to get the report from the VirusTotal API
 async function getVirusTotalReport(url){
+  flag = false;
   var report;
-  // reportId = await getVirusTotalID(url);
+  var stats;
   encoded_url = btoa(url).replace(/=+$/, '');
   const options = {
     method: 'GET',
@@ -33,8 +59,9 @@ async function getVirusTotalReport(url){
     if (response.ok) {
       console.log("success");
       response = await response.json() //jsonify the response
-      report = response.data.attributes.last_analysis_stats;
+      report = response.data;
       console.log(report);
+      flag = true;
     }
     //Error 401 - errors related to VirusTotal account and authentication
     else if (response.status == 401) {
@@ -60,7 +87,7 @@ async function getVirusTotalReport(url){
       chrome.notifications.create({
         type: 'basic',
         title: 'API request failed.',
-        message: 'An unexpected error has occurred. Please try again later.',
+        message: 'An unexpected error has occurred. Please try again later. Ignore this error when the VirusTotal link is opened.',
         iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
       });
     }
@@ -70,19 +97,35 @@ async function getVirusTotalReport(url){
     chrome.notifications.create({
       type: 'basic',
       title: 'Exception error.',
-      message: 'An unexpected error has occurred. Please try again later. Error: [' + error + ']',
+      message: 'An unexpected error has occurred. ',
       iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
     });
   }
-  console.log(report);
-  if ((report.malicious > 0 || report.suspicious > 0) && report.harmless < 90) {
-    chrome.notifications.create({
-      type: 'basic',
-      title: 'Malicious link detected.',
-      message: 'The link you are trying to access known to be malicious/suspicious. Please be careful.',
-      iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
-    });
-    
+  if (flag == true){
+    stats = report.attributes.last_analysis_stats
+    console.log(stats);
+    if ((stats.malicious > 0 || stats.suspicious > 0) && stats.harmless < 90) {
+      chrome.notifications.create({
+        type: 'basic',
+        title: 'Malicious link detected.',
+        message: 'The link you are trying to access is known to be malicious/suspicious. Please be careful. Link: ' + url + '',
+        iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
+      });
+      // maliciousURLs.push(url);
+      // chrome.storage.sync.set({maliciousURLs: maliciousURLs}, function() {
+      //   console.log('New malicious URL added to storage: ' + url);
+      // });
+      console.log(report.id)
+      //self.clients.openWindow("https://www.virustotal.com/gui/url/"+report.id);
+      chrome.tabs.create({url: "https://www.virustotal.com/gui/url/"+report.id}, function(tab) {
+      console.log("New tab created with ID: " + tab.id);
+      });
+    }
+  }
+  else{
+    // chrome.storage.sync.set({trustedURLs: trustedURLs}, function() {
+    //   console.log('New trusted URL added to storage: ' + url);
+    // });
   }
 }
 
@@ -128,7 +171,7 @@ chrome.tabs.onActivated.addListener(() => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (tab.active && changeInfo.url && (changeInfo.url.startsWith("http") || changeInfo.url.startsWith("https"))) {
     if (changeInfo.url !== currentUrl) {
-      console.log(currentUrl);
+      try{console.log("Previous url: "+ currentUrl);}catch{}
       currentUrl = changeInfo.url;
       checkedURLInstance = false;
     }
