@@ -1,3 +1,10 @@
+// Author           : Chua Philip
+// Name of program  : CIPM - Cybersecurity Integrated Password Manager
+// Program name     : popup.js
+// Description      : Holds the code for the popup window of the extension and the button click events. Runs the RSS feed reader.
+// First written on : 13/03/2023
+// Last modified    : 19/03/2023
+
 console.log("Start");
 
 //declaring the links to the RSS news feeds

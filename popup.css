@@ -1,3 +1,12 @@
+/*
+Author           : Chua Philip
+Name of program  : CIPM - Cybersecurity Integrated Password Manager
+Program name     : popup.css
+Description      : Holds the CSS code to style any generated HTML elements in the popup.html file.
+First written on : 13/03/2023
+Last modified    : 19/03/2023
+*/
+
 #button-container {
     display: flex;
     flex-direction: row;

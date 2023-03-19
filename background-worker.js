@@ -1,3 +1,10 @@
+// Author           : Chua Philip
+// Name of program  : CIPM - Cybersecurity Integrated Password Manager
+// Program name     : background-worker.js
+// Description      : Holds the code for the background worker of the extension. Runs the malicious link detection.
+// First written on : 13/03/2023
+// Last modified    : 19/03/2023
+
 console.log("Hi from background-worker.js");
 
 const API_Url = "https://www.virustotal.com/api/v3/urls"; //endpoint for the API
@@ -87,7 +94,7 @@ async function getVirusTotalReport(url){
       chrome.notifications.create({
         type: 'basic',
         title: 'API request failed.',
-        message: 'An unexpected error has occurred. Please try again later. Ignore this error when the VirusTotal link is opened.',
+        message: 'An unexpected error has occurred. Additional web requests might have happened in the process (False alarm). Ignore this error when the VirusTotal link is opened.',
         iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
       });
     }
