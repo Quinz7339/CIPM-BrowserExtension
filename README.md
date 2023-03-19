@@ -2,17 +2,7 @@
 Browser Extension for the CIPM Password Manager
 
 ## To-do
-- virustotal malicious link detection (background-worker.js)
-    ~~- notification showing~~ (shows upon web request)
-    - figure out how to access value of API key from this file
-    - request VT report based on supplied id
-    - implement logic to show notification based on result of Id report
-    - cover them under the same HTTP error if else block
-    - add malicious link to "MaliciousUrls" chrome.storage
-    - add safe link to "SafeUrls" chrome.storage
-    - if current visited link in "SafeUrls" -> ignore
-    - if current visited link in "MaliciousURls" -> notifcation
-    - if current visited link not in both -> call VT function (visited_link)
+~~- malicious link detection~~
 
 
 - HIBP Passwords API (check breached password)
@@ -27,9 +17,7 @@ Browser Extension for the CIPM Password Manager
 
 Obstacles
 - alerts() are deprecated for service-workers in manifest v3
-
-buffer code for manifest
-    "background": {
-        "service_worker": "background-worker.js",
-        "persistent": true
-    },
+- making use of async functions for API requests (something new)
+- persistent storage of extension data
+    - solved through chrome API
+- in general learnt about HTML, CSS and Javascript

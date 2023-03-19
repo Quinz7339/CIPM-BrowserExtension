@@ -167,23 +167,10 @@ btn_Settings.addEventListener('click', function() {
 });
 
 
-
-//tester code for the API
-//tester code for the API
-//tester code for the API
-
-
-
-
 // tester code for background.js
 btn_Connect.addEventListener('click', function() {
   document.getElementById('container').innerHTML = '';
 
-
-  // below is code for background
-  //chrome.runtime.onInstalled.addListener(() => {
-  //  chrome.webNavigation.onCompleted.addListener(getVirusTotalResponse, {url: [{schemes: ['http', 'https']}]});
-  //});
 });
 
 
