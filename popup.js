@@ -21,7 +21,7 @@ chrome.storage.sync.get(['API_KEY'], function(result) {
 
 // Gets the reference to the buttons and fields from the HTML document
 const btn_News = document.getElementById('btn_News');
-const btn_Connect = document.getElementById('btn_Connect');
+// const btn_Connect = document.getElementById('btn_Connect');
 const btn_Settings = document.getElementById('btn_Settings');
 
 function setAPIKey() {
@@ -175,9 +175,9 @@ btn_Settings.addEventListener('click', function() {
 
 
 // tester code for background.js
-btn_Connect.addEventListener('click', function() {
-  document.getElementById('container').innerHTML = '';
+// btn_Connect.addEventListener('click', function() {
+//   document.getElementById('container').innerHTML = '';
 
-});
+// });
 
 

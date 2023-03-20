@@ -5,10 +5,6 @@ Browser Extension for the CIPM Password Manager
 ~~- malicious link detection~~
 
 
-- HIBP Passwords API (check breached password)
-    - https://www.youtube.com/watch?v=B-9Ah4dpKJk (Part 2)
-    - most likely gonna be implemented on the desktop application
-    - tells that passwords starting with "<first 6 charas>" has been found in x breaches
 - integration with desktop application for autofill
 
 

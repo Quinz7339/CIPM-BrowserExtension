@@ -91,9 +91,10 @@ async function getVirusTotalReport(url){
 
     //Miscellaneous errors from VirusTotal API
     }else {
+      console.log(response);
       chrome.notifications.create({
         type: 'basic',
-        title: 'API request failed.',
+        title: 'API request failed. Insert link to VirusTotal GUI website.',
         message: 'An unexpected error has occurred. Additional web requests might have happened in the process (False alarm). Ignore this error when the VirusTotal link is opened.',
         iconUrl: chrome.runtime.getURL('Icons/Logo128.png')
       });
