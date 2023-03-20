@@ -3,7 +3,7 @@
 // Program name     : background-worker.js
 // Description      : Holds the code for the background worker of the extension. Runs the malicious link detection.
 // First written on : 13/03/2023
-// Last modified    : 19/03/2023
+// Last modified    : 20/03/2023
 
 console.log("Hi from background-worker.js");
 
