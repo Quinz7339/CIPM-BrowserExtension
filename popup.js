@@ -75,7 +75,6 @@ btn_News.addEventListener('click', function() {
               const title = item.querySelector('title').textContent;
               const link = item.querySelector('link').textContent;
 
-              //Note to developer: can consider adding a check to see if the thumbnail exists or not
               const thumbnail=item.querySelector('enclosure') ? item.querySelector('enclosure').getAttribute('url') : null;
               const description = item.querySelector('description').textContent;
       
